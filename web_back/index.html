@@ -104,5 +104,24 @@
 
     </script>
 
+    <script>
+        // 入口函数
+        $(function(){
+            // 退出功能
+            $('.icon-tuichu').parent().on('click',function(e){
+                e.preventDefault();
+                // 发送退出请求
+                $.post({
+                    url:'http://localhost:8000/admin/logout',
+                    success:function(res){
+                        if(res.code == 200) {
+                            // 表示退出成功--跳回到登录页
+                            window.location.href = 'login.html';
+                        }
+                    }
+                })           
+            })
+        })
+    </script>
 </body>
 </html>
