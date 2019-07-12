@@ -121,6 +121,21 @@
                     }
                 })           
             })
+
+            // 主页个人信息的修改----页面一打开就发送请求获取登录管理员的个人信息
+            $.get({
+                url:"http://localhost:8000/admin/getuser",
+                success:function(res){
+                    // console.log(res);
+                    if(res.code == 200) {
+                        // 表示获取成功
+                        $('.user_info').children('span').html('欢迎&nbsp;&nbsp'+res.data.nickname);
+                        $('.user_info').children('img').attr('src',res.data.user_pic);
+
+                        $('.user_center_link').children('img').attr('src',res.data.user_pic);                     
+                    }
+                }
+            })
         })
     </script>
 </body>
