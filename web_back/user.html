@@ -24,38 +24,44 @@
                 <div class="form-group">
                     <label for="inputEmail3" class="col-sm-2 control-label">用户名称：</label>
                     <div class="col-sm-4">
-                        <input type="text" class="form-control" id="inputEmail3" value="李思思">
+                        <input type="text" class="form-control username" id="inputEmail3" value="李思思">
                     </div>
                 </div>
                 <div class="form-group">
                     <label for="inputEmail3" class="col-sm-2 control-label">昵称：</label>
                     <div class="col-sm-4">
-                        <input type="text" class="form-control" id="inputEmail3" value="思思">
+                        <input type="text" class="form-control nickname" id="inputEmail3" value="思思">
                     </div>
                 </div>
                 <div class="form-group">
                     <label for="inputEmail3" class="col-sm-2 control-label">邮箱：</label>
                     <div class="col-sm-4">
-                        <input type="text" class="form-control" id="inputEmail3" value="lisisi@126.com">
+                        <input type="text" class="form-control email" id="inputEmail3" value="lisisi@126.com">
                     </div>
                 </div>
-                
+
                 <div class="form-group">
                     <label for="inputPassword3" class="col-sm-2 control-label">用户图标：</label>
                     <div class="col-sm-10">
                         <img src="images/2.jpg" alt="" class="user_pic">
                         <input type="file" id="exampleInputFile">
+                        <br>
+                        <!-- 新知识:美化上传按钮--写一个label标签,设置它的for属性为上传按钮的id,在label标签中包裹你的新的上传按钮图片 -->
+                        <label for="exampleInputFile">
+                            <img src="./images/uploadFileIcon.png" alt="">
+                        </label>
+
                     </div>
                 </div>
 
                 <div class="form-group">
-                        <label for="inputEmail3" class="col-sm-2 control-label">密码：</label>
-                        <div class="col-sm-4">
-                            <input type="password" class="form-control" id="inputEmail3" value="12345678">
-                        </div>
+                    <label for="inputEmail3" class="col-sm-2 control-label">密码：</label>
+                    <div class="col-sm-4">
+                        <input type="password" class="form-control password" id="inputEmail3" value="12345678">
                     </div>
-               
-    
+                </div>
+
+
                 <div class="form-group">
                     <div class="col-sm-offset-2 col-sm-10">
                         <button type="submit" class="btn btn-success">修改</button>
@@ -65,6 +71,97 @@
         </div>
     </div>
 
+    <!-- 修改个人信息之后的温馨提示模态框 -->
+    <!-- Modal -->
+    <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
+                            aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title" id="myModalLabel">温馨提示</h4>
+                </div>
+                <div class="modal-body">
+                    修改成功
+                </div>
+                <div class="modal-footer">
+                    <!-- <button type="button" class="btn btn-default" data-dismiss="modal">Close</button> -->
+                    <button type="button" class="btn btn-primary btn-confirm">确定</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 导入bootstrap的js文件 -->
+    <script src="./js/bootstrap/js/bootstrap.min.js"></script>
+    <script>
+        // 入口函数
+        $(function () {
+            // 3.头像图片预览--给上传文件按钮添加一个change事件
+            $('#exampleInputFile').on('change', function () {
+                var url = URL.createObjectURL(this.files[0]);
+                $('.user_pic').attr('src', url);
+            })
+
+            // 1.这个页面一打开就要发送ajax请求---获取真实的数据显示在页面上
+            $.ajax({
+                url: "http://localhost:8000/admin/userinfo_get ",
+                success: function (res) {
+                    // 这样写比较麻烦,那就想一个办法--遍历res.data的数据
+                    // $('.username').val(res.data.username);
+                    // $('.nickname').val(res.data.nickname);
+                    // $('.email').val(res.data.email);
+                    // $('.password').val(res.data.password);
+
+                    // 遍历请求回来的数据
+                    for (var key in res.data) {
+                        $('.' + key).val(res.data[key]);
+                    }
+                    $('.user_pic').attr('src', res.data.user_pic);
+                }
+            })
+
+            // 2.给修改按钮添加点击事件
+            $('.btn-success').on('click', function (e) {
+                // 阻止submit默认跳转行为
+                e.preventDefault();
+                // 创建一个FormData对象
+                var fm = new FormData($('.form-horizontal')[0]);
+                // 发送请求---修改数据
+                $.post({
+                    url: "http://localhost:8000/admin/userinfo_edit ",
+                    data: fm,
+                    contentType: false,
+                    processData: false,
+                    success: function (res) {
+                        if (res.code == 200) {
+                            // 修改成功--加一个模态框的温馨提示
+                            $('#myModal').modal();//调用模态框  
+
+                            // // 给模态框的确认按钮添加点击事件
+                            $('.btn-confirm').on('click',function(){
+
+                                console.log('好了');
+                            //     // 1.刷新当前页面
+                            //     // location.reload();
+
+                            //     // 2.新知识:加一个parent,就是刷新iframe的父页面
+                            // parent.location.reload();  
+                           
+
+                            //     // 3.再次发送ajax请求,获取用户信息,显示在父窗口对应的标签中
+                            //     // 获取登录管理员的个人信息
+                                
+                            })                      
+                        }
+                    }
+                })
+            })
+
+
+           
+        })
+    </script>
 </body>
 
 </html>
