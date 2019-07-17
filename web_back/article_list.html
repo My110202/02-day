@@ -299,8 +299,8 @@
                 <td class="text-center">{{v.date}}</td>
                 <td class="text-center">{{v.state}}</td>
                 <td class="text-center">
-                    <a href="article_edit.html" class="btn btn-default btn-xs">编辑</a>
-                    <a href="#" data-id="{{v.id}}" class="btn btn-danger btn-xs">删除</a>
+                    <a href="article_edit.html?id={{v.id}}" class="btn btn-default btn-xs">编辑</a>
+                    <a href="#" data-id="{{v.id}}" class="btn btn-danger btn-xs btn-delete">删除</a>
                 </td>
             </tr>
         {{/each}}
@@ -326,6 +326,7 @@
             $('#btnSearch').on('click', function (e) {
                 e.preventDefault();
                 getAllArt(1);//点击筛选的时候显示第一页
+                $('#btnSearch').trigger('click');
             })
 
             // 声明一个变量--记录获取的总页数
@@ -334,8 +335,8 @@
             //分页插件的高级使用---根据查询出来的数据---动态的生成页码数
             var $pagination = $('.pagination');
             var defaultOpts = {
-                totalPages: 35,//总页数
-                visiblePages: 7,//最大可见页数
+                totalPages: myTotalPage,//总页数
+                visiblePages: 5,//最大可见页数
                 first: '首页',
                 prev: '上一页',
                 next: '下一页',
@@ -362,7 +363,7 @@
                         type: category, //文章类型
                         state: selStatus,   //文章状态(草稿或者已发布)
                         page: myPage,    //当前页,为空返回第一页
-                        perpage: 8, //每页显示的条数
+                        perpage: 5, //每页显示的条数
                         // id参数不用写,写了就只能找到一个文章了
                     },
                     success: function (res) {
@@ -371,13 +372,14 @@
                             // 调用模板
                             var result = template('art-list', res);
                             $('tbody').html(result);
-
-
+                           
                             // // 因为总页数在发送ajax请求成功后返回的数据里,所以这个重绘页码条的数据写在写在这个成功的success方法中
                             var totalPages = res.totalPage;    //拿到新的总页数
+
+                            window.currentPage = $pagination.twbsPagination('getCurrentPage');//点击的当前页
                             if (myTotalPage != totalPages) { //如果获取的新的页码数不等于当前的总页码数
                                 myTotalPage = totalPages;
-                                var currentPage = $pagination.twbsPagination('getCurrentPage');//点击的当前页
+                                
                                 $pagination.twbsPagination('destroy');
                                 //在调用这个方法的时候,内部会自动调用分页插件的 onPageClick方法,在 onPageClick方法中有会调用getAllArt方法,这样就会死循环了
                                 $pagination.twbsPagination($.extend({}, defaultOpts, {
@@ -393,7 +395,35 @@
 
 
             // 3需求:一进入这个文章列表这个页面就显示获取的文章--触发筛选按钮的点击事件
-            $('#btnSearch').trigger('click');
+            // $('#btnSearch').trigger('click');
+
+
+
+            // 4.需求:文章列表的删除文章功能
+            $('tbody').on('click','.btn-delete',function(e){
+                e.preventDefault();
+                var that = $(this);
+                if(confirm('请问你是真的要删除吗?')) {
+                    // 获取删除文章的id
+                    var id = $(this).attr('data-id');
+                    console.log(id);
+                    // 发送ajax请求
+                    $.get({
+                        url:"http://localhost:8000/admin/article_delete",
+                        data:{id:id},
+                        success:function(res){
+                            if(res.code == 200) {
+                                // 表示删除成功
+                                // that.parent().parent().remove();//这样写有一个问题,就是会变成一页显示4条
+                                // getAllArt(currentPage);//获取当前页,把当前页传进去
+
+                                getAllArt();
+                            }
+                            console.log(res);
+                        }
+                    })
+                }
+            })
 
         })
     </script>
