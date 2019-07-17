@@ -27,25 +27,23 @@
                 <div class="form-group">
                     <label for="inputEmail3" class="col-sm-2 control-label">文章标题：</label>
                     <div class="col-sm-10">
-                        <input type="email" class="form-control" id="inputEmail3" value="文章标题文字">
+                        <input type="email" class="form-control title" name="title" id="inputEmail3" value="文章标题文字">
                     </div>
                 </div>
                 <div class="form-group">
                     <label for="inputPassword3" class="col-sm-2 control-label">文章封面：</label>
                     <div class="col-sm-10">
-                        <img src="images/pic06.jpg" class="article_cover">
-                        <input type="file" id="exampleInputFile">
+                        <img src="images/pic06.jpg" class="article_cover cover">
+                        <input type="file" name="cover" id="exampleInputFile">
                     </div>
                 </div>
                 <div class="form-group">
                     <label for="inputEmail3" class="col-sm-2 control-label">文章类别：</label>
                     <div class="col-sm-4">
-                        <select class="form-control">
-                            <option>类别一</option>
-                            <option>类别二</option>
-                            <option>类别三</option>
-                            <option selected>类别四</option>
-                            <option>类别五</option>
+                        <select class="form-control" name="type">
+                            <option>科学</option>
+                            <option>军事</option>
+
                         </select>
                     </div>
                 </div>
@@ -54,30 +52,102 @@
                     <div class="col-sm-4">
 
                         <div class="input-group">
-                            <input type="text" class="form-control" value="2019-05-17" id="dateinput">
-                            <span class="input-group-btn">
+                            <input type="text" class="form-control" name="date" value="2019-05-17" id="dateinput" disabled>
+                            <!-- 修改文章的时候,不能改时间,多以要把时间表单禁用,并且把后面的日期按钮删掉 -->
+                            <!-- <span class="input-group-btn">
                                 <button class="btn btn-default" type="button"
                                     onclick="jeDate('#dateinput',{trigger:false,format: 'YYYY-MM-DD'})"><i
                                         class="iconfont icon-icondate"></i></button>
-                            </span>
+                            </span> -->
                         </div>
                     </div>
                 </div>
                 <div class="form-group">
                     <label for="inputEmail3" class="col-sm-2 control-label">文章内容：</label>
                     <div class="col-sm-10">
-                        <input type="text" class="form-control" id="rich_content" name="content" placeholder="文章内容" value="文章内容">
+                        <input type="text" class="form-control" id="rich_content"  placeholder="文章内容"
+                            value="文章内容">
                     </div>
                 </div>
                 <div class="form-group">
                     <div class="col-sm-offset-2 col-sm-10">
-                        <button type="submit" class="btn btn-success">修改</button>
+                        <button type="submit" class="btn btn-success btn-edit">修改</button>
                     </div>
                 </div>
             </form>
         </div>
     </div>
 
+<!-- 导入模板引擎 -->
+<script src="./js/template-web.js"></script>
+<!-- 准备模板 -->
+<script id="tmp_cate" type="text/html">
+    {{each data v}}
+    <option value="{{v.id}}">{{v.name}}</option>
+    {{/each}}
+</script>
+    <script>
+        // 入口函数
+        $(function () {
+            /* 因为本页面需要获取文章类别,所以一进入页面就应该发送ajax请求,获取文章分类,把这些分类显示在下拉列表中 */
+            $.get({
+                url:"http://localhost:8000/admin/category_search",
+                success:function(res){
+                    var result = template('tmp_cate',res);
+                    $('select').html(result);
+                }
+            })
+
+            // 点击谁的编辑就获取谁的id
+            var id = window.location.search.split('=')[1];
+            // 发送ajax请求,获取当前这个id的文章信息--根据id获取当前文章信息
+            $.get({
+                url: "http://localhost:8000/admin/search",
+                data: { id: id },
+                success: function (res) {
+                    if (res.code == 200) {
+                        // 获取信息成功--把当前文章信息展示在页面对应的标签中
+                        $('.title').val(res.data.title);//展示文章标题
+                        $('.cover').attr('src', res.data.cover);//展示文章封面
+                        /* 文章类别,需要根据id找到文章类别 */
+                        $('select').val(res.data.type);//文章类别
+                        $('#dateinput').val(res.data.date);//展示发表时间
+                        $('#rich_content').val(res.data.content);
+                    }
+                }
+            })
+
+            // 修改功能
+            // 图片预览
+            $('#exampleInputFile').on('change',function(){
+                var url = URL.createObjectURL(this.files[0]);
+                $(this).prev().attr('src',url);
+            })
+            // 点击修改.发送ajax请求,完成修改
+            $('.btn-edit').on('click',function(e){
+                e.preventDefault();
+                // 用FormData传输数据
+                var fm = new FormData($('form')[0]);
+                // 往富文本中追加id和content
+                fm.append('id',id);
+                fm.append('content',tinyMCE.activeEditor.getContent());
+                // 发送ajax请求
+                $.post({
+                    url:"http://localhost:8000/admin/article_edit",
+                    data:fm,
+                    contentType:false,
+                    processData:false,
+                    success:function(res){
+                        if(res.code==200){
+                            // 修改成功
+                            alert('修改成功');
+                        }
+                    }
+                })
+            })
+        })
+
+    </script>
 </body>
 
 </html>
