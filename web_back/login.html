@@ -9,6 +9,9 @@
     <link rel="stylesheet" type="text/css" href="css/reset.css">
     <link rel="stylesheet" type="text/css" href="css/iconfont.css">
     <link rel="stylesheet" type="text/css" href="css/main.css">
+
+    <!-- 链接bootstrap的css -->
+    <link rel="stylesheet" href="./js/bootstrap/css/bootstrap.min.css">
 </head>
 
 <body>
@@ -29,8 +32,82 @@
             </form>
         </div>
 
-    </div> 
+    </div>
 
+    <!-- 模态框---提示框 -->
+    <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
+                            aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title" id="myModalLabel">Modal title</h4>
+                </div>
+                <div class="modal-body">
+                    ...
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary">Save changes</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 引入jQuery文件 -->
+    <script src="./js/jquery-1.12.4.min.js"></script>
+    <!-- 引入bootstrap的jQuery文件 -->
+    <script src="./js/bootstrap/js/bootstrap.min.js"></script>
+    <script>
+        /* 做了两件事:1.登录功能的完成  2.美化弹出框 */
+        // 入口函数
+        $(function () {
+            // 1.给登录按钮点击事件
+            $('.input_sub').on('click', function (e) {
+                // 阻止事件的默认跳转行为
+                e.preventDefault();
+                // 2.获取用户名和密码
+                var userName = $('.input_txt').val();
+                var password = $('.input_pass').val();
+                // 判断一下用户名和密码是否为空
+                if (userName == '' || password == '') {
+                    // alert('用户名或密码为空');//不用alert提示框,用bootstrap的模态框
+
+                    $('.modal-body').text('用户名和密码为空!');
+                    $('#myModal').modal({
+                        keyboard: true //true表示按下esc就能退出
+                    })
+                }
+
+                // 给模态框一个键盘按下事件
+                $('#myModal').keydown(function(e){
+                    if(e.keyCode == 13) {
+                        $('.btn-default').trigger('click');
+                    }
+                })
+
+                // 3.发送ajax请求--请求登录
+                $.ajax({
+                    type: "post",
+                    url: "http://localhost:8000/admin/login",
+                    data: { user_name: userName, password: password },
+                    success: function (res) {
+                        if (res.code == 200) {
+                            // 表示登录成功--跳到主页
+                            window.location.href = 'index.html';
+                        } else {
+                            // alert(res.msg);//不用alert提示框,用bootstrap的模态框
+
+                            $('.modal-body').text(res.msg);
+                            $('#myModal').modal({
+                                keyboard: true
+                            })
+                        }
+                    }
+                })
+            })
+        })
+    </script>
 </body>
 
 </html>

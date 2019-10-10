@@ -15,6 +15,8 @@
     <script src="js/jedate/js/jedate.js"></script>
     <script src="js/tinymce/js/tinymce/tinymce.min.js"></script>
     <script src="js/tinymce/js/tinymce_setup.js"></script>
+    <!-- 引入moment.js文件 -->
+    <script src="./js/moment.js"></script>
 </head>
 
 <body>
@@ -27,19 +29,26 @@
                 <div class="form-group">
                     <label for="inputEmail3" class="col-sm-2 control-label">文章标题：</label>
                     <div class="col-sm-10">
-                        <input type="email" class="form-control" id="inputEmail3" placeholder="文章标题">
+                        <input type="email" name="title" class="form-control" id="inputEmail3" placeholder="文章标题">
                     </div>
                 </div>
                 <div class="form-group">
                     <label for="inputPassword3" class="col-sm-2 control-label">文章封面：</label>
                     <div class="col-sm-10">
-                        <input type="file" id="exampleInputFile">
+                        <img src="./images/2.jpg" style="height:150px" alt=""><br>
+                        <input type="file" id="exampleInputFile" name="cover" >
+                        <br>
+                        <!-- 美化上传按钮:写一个label标签,设置它的for属性为上传按钮的id,在label标签中包裹新的上传按钮图片 -->
+                        <label for="exampleInputFile">
+                            <img src="./images/uploadFileIcon.png" alt="">
+                        </label>
+
                     </div>
                 </div>
                 <div class="form-group">
                     <label for="inputEmail3" class="col-sm-2 control-label">文章类别：</label>
                     <div class="col-sm-4">
-                        <select class="form-control">
+                        <select class="form-control article_cate" name="type" >
                             <option>1</option>
                             <option>2</option>
                             <option>3</option>
@@ -53,7 +62,7 @@
                     <div class="col-sm-4">
 
                         <div class="input-group">
-                            <input type="text" class="form-control" placeholder="YYYY-MM-DD" id="dateinput">
+                            <input type="text" class="form-control" name="date"  placeholder="YYYY-MM-DD" id="dateinput">
                             <span class="input-group-btn">
                                 <button class="btn btn-default" type="button"
                                     onclick="jeDate('#dateinput',{trigger:false,format: 'YYYY-MM-DD'})"><i
@@ -65,14 +74,15 @@
                 <div class="form-group">
                     <label for="inputEmail3" class="col-sm-2 control-label">文章内容：</label>
                     <div class="col-sm-10">
-                        <textarea class="form-control" id="rich_content" name="content" placeholder="文章内容">
+                        <textarea class="form-control" id="rich_content" placeholder="文章内容">
+                            <!-- 因为富文本这个插件设置name属性时没有用的,所以给它删掉,后面再用append方法添加到FormData里面 -->
                             Lorem ipsum dolor sit amet consectetur adipisicing elit. Assumenda fugiat illo nihil molestias ab. Laborum eius non atque, totam sapiente quae obcaecati assumenda ratione inventore pariatur maiores, qui libero delectus.
-                            </textarea>
+                        </textarea>
                     </div>
                 </div>
                 <div class="form-group">
                     <div class="col-sm-offset-2 col-sm-10">
-                        <button type="submit" class="btn btn-success">发布</button>
+                        <button type="submit" class="btn btn-success btn-release">发布</button>
                         <button type="submit" class="btn btn-default">存为草稿</button>
                     </div>
                 </div>
@@ -80,6 +90,60 @@
         </div>
     </div>
 
+    <!-- 引入模板文件 -->
+    <script src="./js/template-web.js"></script>
+    <!-- 准备模板 -->
+    <script id="tmp_cate" type="text/html">
+        {{each data v}}
+            <option value="{{v.id}}" >{{v.name}}</option>
+        {{/each}}
+    </script>
+    <script>
+        // 1需求:文章封面的图片预览
+        $('#exampleInputFile').on('change',function(){
+            var url = URL.createObjectURL(this.files[0]);
+            $(this).prev().prev().attr('src',url);
+        })
+
+        // 2.文章类别--获取所有的文章分类
+        $.ajax({
+            url:"http://localhost:8000/admin/category_search",
+            success:function(res){
+                // // 获取文章类别成功,显示在文章类别下拉框中
+                if(res.code==200){
+                    //渲染到下拉框中
+                    var result = template('tmp_cate',res);
+                    $('.article_cate').html(result);
+                }
+            }
+        })
+
+        // 3.发布时间--希望一进入这个页面就显示当前时间
+        var currentDate = moment().format('YYYY-MM-DD');
+        $('#dateinput').val(currentDate);
+
+
+        // 点击发布按钮,发布文章
+        $('.btn-release').on('click',function(e){
+            e.preventDefault();
+            var fm = new FormData($('form')[0]);
+            fm.append('state','草稿');
+            fm.append('content',tinyMCE.activeEditor.getContent());
+            // 发送ajax请求
+            $.ajax({
+                type:'post',
+                url:"http://localhost:8000/admin/article_publish",
+                data:fm,
+                contentType:false,
+                processData:false,
+                success:function(res){
+                    if(res.code==201){
+                        alert('发布成功');
+                    }
+                }
+            })
+        })
+    </script>
 </body>
 
 </html>

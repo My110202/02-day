@@ -104,5 +104,39 @@
 
     </script>
 
+    <script>
+        // 入口函数
+        $(function(){
+            // 退出功能
+            $('.icon-tuichu').parent().on('click',function(e){
+                e.preventDefault();
+                // 发送退出请求
+                $.post({
+                    url:'http://localhost:8000/admin/logout',
+                    success:function(res){
+                        if(res.code == 200) {
+                            // 表示退出成功--跳回到登录页
+                            window.location.href = 'login.html';
+                        }
+                    }
+                })           
+            })
+
+            // 主页个人信息的修改----页面一打开就发送请求获取登录管理员的个人信息
+            $.get({
+                url:"http://localhost:8000/admin/getuser",
+                success:function(res){
+                    // console.log(res);
+                    if(res.code == 200) {
+                        // 表示获取成功
+                        $('.user_info').children('span').html('欢迎&nbsp;&nbsp'+res.data.nickname);
+                        $('.user_info').children('img').attr('src',res.data.user_pic);
+
+                        $('.user_center_link').children('img').attr('src',res.data.user_pic);                     
+                    }
+                }
+            })
+        })
+    </script>
 </body>
 </html>
